@@ -31,15 +31,15 @@
             <tr v-for="todo in tasks" :key="todo.id">
                 <td>{{ todo.id }}</td>
             <td>
-                <template v-if="!todo.editing">{{ todo.name }}</template>
-                <input type="text" v-else v-model="todo.name" @keyup.enter="saveTask(todo)">
+                <template v-if="!todo.editing">{{ todo.task }}</template>
+                <input type="text" v-else v-model="todo.task" @keyup.enter="saveTask(todo)">
                 
             </td>
             <td>
                 <select v-model="todo.status">
-                    <option value="A">In-Progress</option>
-                    <option value="B">Done</option>
-                    <option value="C">To-Do</option>
+                    <option value="I">In-Progress</option>
+                    <option value="D">Done</option>
+                    <option value="T">To-Do</option>
                 </select>
                 
             </td>
@@ -58,6 +58,8 @@
             </tbody>
         </table>
         
+        <button @click="updateStatus(todo)" class="btn btn-success">Save</button>
+        
         </div>
     </div>
 
@@ -75,11 +77,11 @@ export default {
         const fetchRecords= async ()=>{
             try{
                 
-                const response= await fetch("http://localhost:84/vue-php/vue-php/src/PHP/fetch.php");
+                const response= await fetch("http://localhost:8080/vue-php/vue-php/src/PHP/fetch.php");
            
                 //const data = await response.json();
                 if (response.ok) {
-                    console.log('inside response')
+                   
                     const data = await response.json();
                     tasks.value = data;
                     console.log(data);
@@ -94,9 +96,9 @@ export default {
         }
         onMounted(fetchRecords)
 
-        const submitTask=()=>{
+        const submitTask=async ()=>{
            
-           if (task_item.value.trim() === '') {
+           /*if (task_item.value.trim() === '') {
             // If the task_item is empty or contains only spaces
             showWarning.value = true; // Show the warning message
             }
@@ -110,28 +112,131 @@ export default {
                 })
                 task_item.value=''
                 showWarning.value=false
+            }*/
+
+            try {
+                if (task_item.value.trim() === ''){
+                    showWarning.value=true;
+                   
+                }
+                else{
+
+                    const newTask={
+                        taskName: task_item.value,
+                        status_pass: 'T'
+
+                    }
+                    console.log(newTask)
+
+                    console.log('before fetch api')
+                    const response = await fetch("http://localhost:8080/vue-php/vue-php/src/PHP/create.php",{
+                    method: 'POST',
+                    body: JSON.stringify(newTask),
+
+                    })
+                    console.log('after fetch api')
+                    
+                    if (response.ok){
+                        console.log('response ok success')
+                        fetchRecords();
+                        
+                        //const result = await response.json();
+                        //tasks.value.push(result)
+                        //console.log(result);
+                    }
+                    else {
+                        
+                        console.error('Error saving task:', response.statusText);
+                    }
+                    task_item.value=''
+                    showWarning.value=false;
+ 
+            }
+
+               
+            } catch (error) {
+                console.error('Error saving task:', error);
             }
 
         }
+
+        //onMounted(submitTask);
         const editTask = (todo) => {
-        const taskId = tasks.value.indexOf(todo);
+        /*const taskId = tasks.value.indexOf(todo);
         if (taskId !== -1) {
             tasks.value[taskId].editing = true;
+        } */ 
+        
+            todo.editing=true;
         }
-        }
+    
 
-        const saveTask = (todo) => {
-        const taskId = tasks.value.indexOf(todo);
+        const saveTask =async (todo) => {
+        /*const taskId = tasks.value.indexOf(todo);
         if (taskId !== -1 && todo.name.trim() !== '') {
             tasks.value[taskId].editing = false;
-        }
+        }*/try{
+            if( todo.task.trim() !== '') {
+                todo.editing=false;
+
+                const response = await fetch("http://localhost:8080/vue-php/vue-php/src/PHP/update.php",{
+                    method: 'POST',
+                    body: JSON.stringify(
+                        {
+                            id: todo.id,
+                            taskName: todo.task,
+                            status_pass: todo.status
+                        }
+                    ),
+
+                });
+
+                if(response.ok){
+                    todo.editing = false;
+                    fetchRecords();
+                }
+                else {
+                        
+                    console.error('Error saving task:', response.statusText);
+                }
+
+            }
+            } catch (error) {
+                    console.error('Error saving task:', error);
+            }
         }
 
-        const deleteTask = (todo) => {
-        const index = tasks.value.indexOf(todo);
-        if (index !== -1) {
+        const deleteTask = async (todo) => {
+        //const index = tasks.value.indexOf(todo);
+        /*if (index !== -1) {
             tasks.value.splice(index, 1);
-        }
+        }*/
+
+        try{
+            const response = await fetch("http://localhost:8080/vue-php/vue-php/src/PHP/delete.php",{
+                method: 'POST',
+                body: JSON.stringify(
+                    {
+                        id: todo.id,
+                    }
+                ),
+                
+
+            })
+
+            if(response.ok){
+                fetchRecords();
+            }
+            else {
+                        
+                console.error('Error saving task:', response.statusText);
+            }
+
+            }catch (error) {
+                    console.error('Error saving task:', error);
+            }
+
+
         }
 
         const deleteAll=() =>{
@@ -139,7 +244,32 @@ export default {
 
         }
 
-        return{tasks, task_item, showWarning, submitTask, editTask, saveTask, deleteTask, deleteAll,fetchRecords}
+        const updateStatus=async (todo) =>{
+            try{
+                const response = await fetch("http://localhost:8080/vue-php/vue-php/src/PHP/status.php",{
+                method: 'POST',
+                body: JSON.stringify(
+                    {
+                        id: todo.id,
+                        status_pass: todo.status
+                    }
+                ),
+
+            })
+
+            if(response.ok){
+                fetchRecords();
+            }
+            else {
+                        
+                console.error('Error saving task:', response.statusText);
+            }
+            }catch (error) {
+                    console.error('Error saving task:', error);
+            }
+        }
+
+        return{tasks, task_item, showWarning, submitTask, editTask, saveTask, deleteTask, deleteAll,fetchRecords,updateStatus}
     }
     /*methods:{
         submitTask(){
