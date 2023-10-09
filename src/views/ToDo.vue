@@ -72,7 +72,6 @@ export default {
         const tasks= ref([]);
         const task_item= ref('');
         const showWarning= ref(false);
-        const allData=ref(''); //new variable; store all data from php
 
         const fetchRecords= async ()=>{
             try{
@@ -98,21 +97,6 @@ export default {
 
         const submitTask=async ()=>{
            
-           /*if (task_item.value.trim() === '') {
-            // If the task_item is empty or contains only spaces
-            showWarning.value = true; // Show the warning message
-            }
-            else{
-                
-                tasks.value.push({
-                    id: tasks.value.length + 1,
-                    name:task_item.value,
-                    status:'',
-                    editing:false
-                })
-                task_item.value=''
-                showWarning.value=false
-            }*/
 
             try {
                 if (task_item.value.trim() === ''){
@@ -140,9 +124,6 @@ export default {
                         console.log('response ok success')
                         fetchRecords();
                         
-                        //const result = await response.json();
-                        //tasks.value.push(result)
-                        //console.log(result);
                     }
                     else {
                         
@@ -162,20 +143,14 @@ export default {
 
         //onMounted(submitTask);
         const editTask = (todo) => {
-        /*const taskId = tasks.value.indexOf(todo);
-        if (taskId !== -1) {
-            tasks.value[taskId].editing = true;
-        } */ 
         
             todo.editing=true;
         }
     
 
         const saveTask =async (todo) => {
-        /*const taskId = tasks.value.indexOf(todo);
-        if (taskId !== -1 && todo.name.trim() !== '') {
-            tasks.value[taskId].editing = false;
-        }*/try{
+       
+            try{
             if( todo.task.trim() !== '') {
                 todo.editing=false;
 
@@ -207,11 +182,7 @@ export default {
         }
 
         const deleteTask = async (todo) => {
-        //const index = tasks.value.indexOf(todo);
-        /*if (index !== -1) {
-            tasks.value.splice(index, 1);
-        }*/
-
+       
         try{
             const response = await fetch("http://localhost:8080/vue-php/vue-php/src/PHP/delete.php",{
                 method: 'POST',
@@ -271,51 +242,7 @@ export default {
 
         return{tasks, task_item, showWarning, submitTask, editTask, saveTask, deleteTask, deleteAll,fetchRecords,updateStatus}
     }
-    /*methods:{
-        submitTask(){
-           // this.tasks.
-           if (this.task_item.trim() === '') {
-            // If the task_item is empty or contains only spaces
-            this.showWarning = true; // Show the warning message
-            }
-            else{
-                
-                this.tasks.push({
-                    id: this.tasks.length + 1,
-                    name:this.task_item,
-                    status:'',
-                    editing:false
-                })
-                this.task_item=''
-                this.showWarning=false
-            }
-
-        },
-        editTask(todo){
-            const taskId= this.tasks.indexOf(todo)
-            this.tasks[taskId].editing=true  //set editing condition true
-            
-        },
-        saveTask(todo){
-            console.log('test')
-            const taskId = this.tasks.indexOf(todo);
-            if (taskId!=-1 && todo.name.trim() !== '') {
-                this.tasks[taskId].editing = false;
-            }
-            console.log(this.tasks)
-
-           
-        },
-        deleteTask(todo){
-           
-             console.log(todo);
-             this.tasks.splice(this.tasks.indexOf(todo), 1);
-        },
-
-        deleteAll(){
-            this.tasks=[];
-        }
-        }*/
+    
 }
 
 
